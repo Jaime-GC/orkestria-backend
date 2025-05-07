@@ -1,37 +1,54 @@
 package com.tfg.app.user.service;
 
 import com.tfg.app.user.model.User;
-import com.tfg.app.user.repository.RoleRepository;
+import com.tfg.app.user.model.User.Role;
 import com.tfg.app.user.repository.UserRepository;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class UserServiceTest {
     @Mock UserRepository userRepo;
-    @Mock RoleRepository roleRepo;
     @InjectMocks UserService svc;
 
-    @BeforeEach void init() {
-        MockitoAnnotations.openMocks(this);
-        svc = new UserService(userRepo, roleRepo, new BCryptPasswordEncoder());
+    @BeforeEach void init() { MockitoAnnotations.openMocks(this); }
+
+    @Test void findAll_shouldReturnList() {
+        var list = List.of(new User(), new User());
+        when(userRepo.findAll()).thenReturn(list);
+        assertEquals(2, svc.findAll().size());
+        verify(userRepo).findAll();
     }
 
-    @Test void register_savesUserWithEncodedPassword(){
-        User u = new User(null,"bob","b@b","pass",null);
-        when(roleRepo.findAll()).thenReturn(List.of());
-        when(roleRepo.save(any())).thenAnswer(i->i.getArgument(0));
-        when(userRepo.save(any())).thenAnswer(i->i.getArgument(0));
-        User saved = svc.register(u);
-        Assertions.assertNotEquals("pass", saved.getPassword());
-        verify(userRepo).save(saved);
+    @Test void findById_whenExists() {
+        var u = new User(); u.setId(1L);
+        when(userRepo.findById(1L)).thenReturn(Optional.of(u));
+        var opt = svc.findById(1L);
+        assertTrue(opt.isPresent());
+        assertEquals(1L, opt.get().getId());
     }
 
-    @Test void findByUsername_returnsOptional(){
-        when(userRepo.findByUsername("x")).thenReturn(Optional.of(new User()));
-        Assertions.assertTrue(svc.findByUsername("x").isPresent());
+    @Test void save_shouldCallSave() {
+        var u = new User(null,"bob","b@b","pw", new HashSet<>());
+        when(userRepo.save(u)).thenReturn(u);
+        assertEquals(u, svc.save(u));
+        verify(userRepo).save(u);
+    }
+
+    @Test void deleteById_shouldCallDelete() {
+        svc.deleteById(5L);
+        verify(userRepo).deleteById(5L);
+    }
+
+    @Test void assignRole_addsRoleAndSaves() {
+        var u = new User(1L,"bob","b@b","pw", new HashSet<>());
+        when(userRepo.findById(1L)).thenReturn(Optional.of(u));
+        when(userRepo.save(u)).thenReturn(u);
+
+        User res = svc.assignRole(1L, Role.MANAGER);
+        assertTrue(res.getRoles().contains(Role.MANAGER));
+        verify(userRepo).save(u);
     }
 }

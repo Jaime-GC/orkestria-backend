@@ -1,4 +1,4 @@
-package com.tfg.app.service;
+package com.tfg.app.project.service;
 
 import com.tfg.app.project.model.Project;
 import com.tfg.app.project.repository.ProjectRepository;
