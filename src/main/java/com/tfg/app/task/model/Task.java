@@ -1,26 +1,28 @@
-package com.tfg.app.entity;
+package com.tfg.app.task.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import com.tfg.app.project.model.Project;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "tasks")
+@Getter
+@Setter
 public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
+    @Column(nullable = false)
     private String title;
+
     private String description;
 
     @Enumerated(EnumType.STRING)

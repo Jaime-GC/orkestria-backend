@@ -1,7 +1,9 @@
 package com.tfg.app.service;
 
-import com.tfg.app.entity.Task;
-import com.tfg.app.repository.TaskRepository;
+import com.tfg.app.task.model.Task;
+import com.tfg.app.task.repository.TaskRepository;
+import com.tfg.app.task.service.TaskService;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

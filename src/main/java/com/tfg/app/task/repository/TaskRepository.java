@@ -1,6 +1,6 @@
-package com.tfg.app.repository;
+package com.tfg.app.task.repository;
 
-import com.tfg.app.entity.Task;
+import com.tfg.app.task.model.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 

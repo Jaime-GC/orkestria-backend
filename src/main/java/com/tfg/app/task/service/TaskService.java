@@ -1,7 +1,7 @@
-package com.tfg.app.service;
+package com.tfg.app.task.service;
 
-import com.tfg.app.entity.Task;
-import com.tfg.app.repository.TaskRepository;
+import com.tfg.app.task.model.Task;
+import com.tfg.app.task.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

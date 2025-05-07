@@ -1,7 +1,9 @@
 package com.tfg.app.service;
 
-import com.tfg.app.entity.Project;
-import com.tfg.app.repository.ProjectRepository;
+import com.tfg.app.project.model.Project;
+import com.tfg.app.project.repository.ProjectRepository;
+import com.tfg.app.project.service.ProjectService;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

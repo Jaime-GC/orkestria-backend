@@ -1,14 +1,13 @@
-package com.tfg.app.controller;
+package com.tfg.app.project.controller;
 
+import com.tfg.app.project.model.Project;
+import com.tfg.app.project.service.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import com.tfg.app.service.ProjectService;
-import com.tfg.app.entity.Project;
 
 @RestController
 @RequestMapping("/api/projects")
