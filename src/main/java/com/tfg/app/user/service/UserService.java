@@ -34,7 +34,7 @@ public class UserService {
 
     public User assignRole(Long userId, User.Role role) {
         User u = userRepo.findById(userId).orElseThrow();
-        u.getRoles().add(role);
+        u.setRole(role);
         return userRepo.save(u);
     }
 }

@@ -1,6 +1,7 @@
 package com.tfg.app.user.controller;
 
 import com.tfg.app.user.model.User;
+import com.tfg.app.user.model.User.Role;
 import com.tfg.app.user.controller.UserController;
 import com.tfg.app.user.service.UserService;
 import org.junit.jupiter.api.*;
@@ -75,5 +76,14 @@ class UserControllerTest {
         when(userService.findById(6L)).thenReturn(Optional.empty());
         ResponseEntity<Void> resp = controller.delete(6L);
         assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+    }
+
+    @Test void addRole_setsRole() {
+        User u = new User(1L,"bob","b@b", null);
+        when(userService.assignRole(1L, Role.ADMIN)).thenReturn(u);
+
+        var resp = controller.addRole(1L, Role.ADMIN);
+        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        verify(userService).assignRole(1L, Role.ADMIN);
     }
 }

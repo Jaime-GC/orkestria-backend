@@ -12,8 +12,10 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public List<User> all() {
@@ -29,8 +31,9 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<User> create(@RequestBody User u) {
-        if (u.getRoles() == null) {
-            u.setRoles(new java.util.HashSet<>());
+        // Assign default CLIENT role if missing
+        if (u.getRole() == null) {
+            u.setRole(User.Role.CLIENT);
         }
         User saved = userService.save(u);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
@@ -52,8 +55,8 @@ public class UserController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}/roles")
-    public ResponseEntity<User> addRole(@PathVariable Long id, @RequestBody Role role) {
+    @PutMapping("/{id}/role")
+    public ResponseEntity<User> addRole(@PathVariable Long id, @RequestBody User.Role role) {
         User updated = userService.assignRole(id, role);
         return ResponseEntity.ok(updated);
     }

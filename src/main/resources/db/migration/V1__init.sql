@@ -21,13 +21,6 @@ CREATE TABLE tasks (
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL
-);
-
--- Join table for embedded enum roles
-CREATE TABLE user_roles (
-    user_id INT NOT NULL,
-    role VARCHAR(20) NOT NULL,
-    PRIMARY KEY (user_id, role),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    email VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'CLIENT'
 );

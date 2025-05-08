@@ -31,7 +31,12 @@ class UserServiceTest {
     }
 
     @Test void save_shouldCallSave() {
-        var u = new User(null,"bob","b@b", new HashSet<>());
+        
+        var u = new User(null, "bob", "b@b", Role.EMPLOYEE);
+        when(userRepo.save(u)).thenReturn(u);
+        assertEquals(u, svc.save(u));
+        verify(userRepo).save(u);
+        
         when(userRepo.save(u)).thenReturn(u);
         assertEquals(u, svc.save(u));
         verify(userRepo).save(u);
@@ -42,13 +47,13 @@ class UserServiceTest {
         verify(userRepo).deleteById(5L);
     }
 
-    @Test void assignRole_addsRoleAndSaves() {
-        var u = new User(1L,"bob","b@b", new HashSet<>());
+    @Test void assignRole_setsSingleRole() {
+        var u = new User(1L,"bob","b@b", null);
         when(userRepo.findById(1L)).thenReturn(Optional.of(u));
         when(userRepo.save(u)).thenReturn(u);
 
         User res = svc.assignRole(1L, Role.MANAGER);
-        assertTrue(res.getRoles().contains(Role.MANAGER));
+        assertEquals(Role.MANAGER, res.getRole());
         verify(userRepo).save(u);
     }
 }
