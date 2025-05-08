@@ -25,18 +25,16 @@ public class TaskController {
     public ResponseEntity<List<Task>> getAllTasks(@PathVariable Long projectId) {
         // Verificar que el proyecto existe
         projectService.findById(projectId)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Project not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
+        
         List<Task> tasks = taskService.findAllByProjectId(projectId);
         return ResponseEntity.ok(tasks);
     }
 
     @PostMapping
     public ResponseEntity<Task> createTask(@PathVariable Long projectId, @RequestBody Task task) {
-
-        Project project = projectService.findById(projectId).orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Project not found")
-                );
+        // Verificar que el proyecto existe
+        Project project = projectService.findById(projectId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
 
         task.setProject(project);
         Task created = taskService.save(task);
@@ -48,26 +46,28 @@ public class TaskController {
 
         // Verificar proyecto
         projectService.findById(projectId)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Project not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
 
-        Task t = taskService.findById(taskId).orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Task not found")
-                );
-
+        Task t = taskService.findById(taskId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
         return ResponseEntity.ok(t);
     }
 
     @PutMapping("/{taskId}")
     public ResponseEntity<Task> updateTask(@PathVariable Long projectId, @PathVariable Long taskId, @RequestBody Task task) {
 
-        // Opcional: comprobar que task.getProject().getId()==projectId
+        if(task.getProject() != null && task.getProject().getId() != null && !task.getProject().getId().equals(projectId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Task project ID does not match the provided project ID");
+        }
         Task updated = taskService.update(taskId, task);
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{taskId}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long projectId, @PathVariable Long taskId) {
+        // Verificar que el proyecto existe
+        projectService.findById(projectId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
+
         taskService.delete(taskId);
         return ResponseEntity.noContent().build();
     }

@@ -43,6 +43,6 @@ public class Task {
     }
 
     public enum Status {
-        TODO, DOING, DONE
+        TODO, DOING, BLOCKED, DONE
     }
 }

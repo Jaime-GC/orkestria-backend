@@ -1,6 +1,5 @@
 package com.tfg.app;
 
-import com.tfg.app.OrkestriaBackendApplication;   // importa la clase principal
 import com.tfg.app.project.model.Project;
 import com.tfg.app.task.model.Task;
 import com.tfg.app.user.model.User;
@@ -9,17 +8,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -27,13 +19,13 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(
-    classes = OrkestriaBackendApplication.class,
-    webEnvironment = WebEnvironment.RANDOM_PORT
+    webEnvironment = WebEnvironment.RANDOM_PORT,
+    // Desactiva Flyway y deja que Hibernate cree el esquema limpio para cada test
+    properties = {
+        "spring.flyway.enabled=false",
+        "spring.jpa.hibernate.ddl-auto=create-drop"
+    }
 )
-@SpringBootApplication(exclude = {
-    SecurityAutoConfiguration.class,
-    SecurityFilterAutoConfiguration.class
-})
 class OrkestriaBackendApplicationTests {
 
     @Autowired
@@ -51,11 +43,10 @@ class OrkestriaBackendApplicationTests {
         ResponseEntity<Project> projectResponse =
             restTemplate.postForEntity("/api/projects", project, Project.class);
         assertEquals(HttpStatus.CREATED, projectResponse.getStatusCode());
-        assertNotNull(projectResponse.getBody(), "Project response body is null");
+        assertNotNull(projectResponse.getBody());
         Long projectId = projectResponse.getBody().getId();
-        assertNotNull(projectId, "Project ID should not be null");
 
-        // 2) Crear tarea
+        // 2) Crear tarea dentro de ese proyecto
         Task task = new Task();
         task.setTitle("Test Task");
         task.setDescription("Task for integration test");
@@ -70,65 +61,67 @@ class OrkestriaBackendApplicationTests {
                 Task.class
             );
         assertEquals(HttpStatus.CREATED, postTask.getStatusCode());
-        assertNotNull(postTask.getBody(), "Task response body is null");
         Long taskId = postTask.getBody().getId();
-        assertNotNull(taskId, "Task ID should not be null");
 
-        // 3) Listar tareas
+        // 3) Listar tareas y comprobar que aparece la creada
         ResponseEntity<Task[]> getTasks =
             restTemplate.getForEntity(
                 "/api/projects/" + projectId + "/tasks",
                 Task[].class
             );
         assertEquals(HttpStatus.OK, getTasks.getStatusCode());
-        assertNotNull(getTasks.getBody(), "Task list should not be null");
         assertTrue(
             Arrays.stream(getTasks.getBody())
-                  .anyMatch(t -> t.getId().equals(taskId)),
-            "Created task must appear in task list"
+                  .anyMatch(t -> t.getId().equals(taskId))
         );
     }
 
     @Test
     void userCrudFlow() {
-        // CREATE
-        var u = new User();
-        u.setUsername("jane");
-        u.setEmail("jane@x.com");
-        u.setPassword("pwd");
-        ResponseEntity<User> post = restTemplate.postForEntity(
-            "/api/users", u, User.class);
-        assertEquals(HttpStatus.CREATED, post.getStatusCode());
-        Long id = post.getBody().getId();
+        // 1) Crear usuario
+        User user = new User();
+        user.setUsername("alice");
+        user.setEmail("a@b.com");
 
-        // LIST contains new
-        User[] arr = restTemplate.getForEntity(
-            "/api/users", User[].class).getBody();
-        assertTrue(Arrays.stream(arr)
-                   .anyMatch(x -> x.getId().equals(id)));
+        ResponseEntity<User> createRes =
+            restTemplate.postForEntity("/api/users", user, User.class);
+        assertEquals(HttpStatus.CREATED, createRes.getStatusCode());
+        User created = createRes.getBody();
+        assertNotNull(created);
+        Long userId = created.getId();
 
-        // UPDATE
-        u.setEmail("jane2@x.com");
-        HttpEntity<User> putReq = new HttpEntity<>(u);
-        ResponseEntity<User> put = restTemplate.exchange(
-            "/api/users/"+id, HttpMethod.PUT, putReq, User.class);
-        assertEquals(HttpStatus.OK, put.getStatusCode());
-        assertEquals("jane2@x.com", put.getBody().getEmail());
+        // 2) Listar usuarios y comprobar que está
+        ResponseEntity<User[]> listRes =
+            restTemplate.getForEntity("/api/users", User[].class);
+        assertEquals(HttpStatus.OK, listRes.getStatusCode());
+        assertTrue(
+            Arrays.stream(listRes.getBody())
+                  .anyMatch(u -> u.getId().equals(userId))
+        );
 
-        // GET by id
-        ResponseEntity<User> get = restTemplate.getForEntity(
-            "/api/users/"+id, User.class);
-        assertEquals(HttpStatus.OK, get.getStatusCode());
-        assertEquals("jane2@x.com", get.getBody().getEmail());
+        // 3) Actualizar usuario
+        created.setEmail("changed@c.com");
+        HttpEntity<User> updateReq = new HttpEntity<>(created);
+        ResponseEntity<User> updateRes =
+            restTemplate.exchange("/api/users/" + userId,
+                                  HttpMethod.PUT,
+                                  updateReq,
+                                  User.class);
+        assertEquals(HttpStatus.OK, updateRes.getStatusCode());
+        assertEquals("changed@c.com", updateRes.getBody().getEmail());
 
-        // DELETE
-        ResponseEntity<Void> del = restTemplate.exchange(
-            "/api/users/"+id, HttpMethod.DELETE, null, Void.class);
-        assertEquals(HttpStatus.NO_CONTENT, del.getStatusCode());
+        // 4) Obtener por ID
+        ResponseEntity<User> getRes =
+            restTemplate.getForEntity("/api/users/" + userId, User.class);
+        assertEquals(HttpStatus.OK, getRes.getStatusCode());
+        assertEquals("changed@c.com", getRes.getBody().getEmail());
 
-        // GET missing → 404
-        assertEquals(HttpStatus.NOT_FOUND,
-            restTemplate.getForEntity("/api/users/"+id, User.class)
-                        .getStatusCode());
+        // 5) Borrar usuario
+        restTemplate.delete("/api/users/" + userId);
+
+        // 6) Verificar que ya no existe → 404
+        ResponseEntity<User> afterDelete =
+            restTemplate.getForEntity("/api/users/" + userId, User.class);
+        assertEquals(HttpStatus.NOT_FOUND, afterDelete.getStatusCode());
     }
 }

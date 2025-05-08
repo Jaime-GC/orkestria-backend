@@ -31,7 +31,7 @@ class UserServiceTest {
     }
 
     @Test void save_shouldCallSave() {
-        var u = new User(null,"bob","b@b","pw", new HashSet<>());
+        var u = new User(null,"bob","b@b", new HashSet<>());
         when(userRepo.save(u)).thenReturn(u);
         assertEquals(u, svc.save(u));
         verify(userRepo).save(u);
@@ -43,7 +43,7 @@ class UserServiceTest {
     }
 
     @Test void assignRole_addsRoleAndSaves() {
-        var u = new User(1L,"bob","b@b","pw", new HashSet<>());
+        var u = new User(1L,"bob","b@b", new HashSet<>());
         when(userRepo.findById(1L)).thenReturn(Optional.of(u));
         when(userRepo.save(u)).thenReturn(u);
 
