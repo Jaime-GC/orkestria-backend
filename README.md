@@ -1,15 +1,15 @@
 # Orkestria Backend
 
 ## Description
-Orkestria Backend is a monolithic Spring Boot project designed to manage projects and tasks. It provides a REST API for creating, reading, updating, and deleting (CRUD) projects and tasks using a PostgreSQL database.
+Orkestria Backend is a monolithic Spring Boot project to manage projects, tasks and users. It provides REST endpoints for CRUD operations on Projects, Tasks and Users, backed by PostgreSQL.
 
 ## Technologies Used
-- **Java 21**: Programming language.
-- **Spring Boot**: Framework for building Java applications.
-- **Spring Data JPA**: For data persistence.
-- **Lombok**: To reduce boilerplate code.
-- **PostgreSQL**: Database system.
-- **Flyway**: For database migration management.
+- Java 21
+- Spring Boot
+- Spring Data JPA
+- Lombok
+- PostgreSQL
+- Flyway for DB migrations
 
 ## Project Structure
 ```
@@ -21,18 +21,33 @@ orkestria-backend
 │   │   │       └── tfg
 │   │   │           └── app
 │   │   │               ├── OrkestriaBackendApplication.java
-│   │   │               ├── entity
-│   │   │               │   ├── Project.java
-│   │   │               │   └── Task.java
-│   │   │               ├── repository
-│   │   │               │   ├── ProjectRepository.java
-│   │   │               │   └── TaskRepository.java
-│   │   │               ├── service
-│   │   │               │   ├── ProjectService.java
-│   │   │               │   └── TaskService.java
-│   │   │               └── controller
-│   │   │                   ├── ProjectController.java
-│   │   │                   └── TaskController.java
+│   │   │               ├── project
+│   │   │               │   ├── model
+│   │   │               │   │   └── Project.java
+│   │   │               │   ├── repository
+│   │   │               │   │   └── ProjectRepository.java
+│   │   │               │   ├── service
+│   │   │               │   │   └── ProjectService.java
+│   │   │               │   └── controller
+│   │   │               │       └── ProjectController.java
+│   │   │               ├── task
+│   │   │               │   ├── model
+│   │   │               │   │   └── Task.java
+│   │   │               │   ├── repository
+│   │   │               │   │   └── TaskRepository.java
+│   │   │               │   ├── service
+│   │   │               │   │   └── TaskService.java
+│   │   │               │   └── controller
+│   │   │               │       └── TaskController.java
+│   │   │               └── user
+│   │   │                   ├── model
+│   │   │                   │   └── User.java
+│   │   │                   ├── repository
+│   │   │                   │   └── UserRepository.java
+│   │   │                   ├── service
+│   │   │                   │   └── UserService.java
+│   │   │                   └── controller
+│   │   │                       └── UserController.java
 │   │   └── resources
 │   │       ├── application.properties
 │   │       └── db
@@ -43,7 +58,24 @@ orkestria-backend
 │           └── com
 │               └── tfg
 │                   └── app
-│                       └── OrkestriaBackendApplicationTests.java
+│                       ├── OrkestriaBackendApplicationTests.java
+│                       ├── project
+│                       │   └── controller
+│                       │       └── ProjectControllerTest.java
+│                       ├── project
+│                       │   └── service
+│                       │       └── ProjectServiceUnitTest.java
+│                       ├── task
+│                       │   └── controller
+│                       │       └── TaskControllerTest.java
+│                       ├── task
+│                       │   └── service
+│                       │       └── TaskServiceUnitTest.java
+│                       └── user
+│                           ├── controller
+│                           │   └── UserControllerTest.java
+│                           └── service
+│                               └── UserServiceTest.java
 ├── pom.xml
 └── README.md
 ```
@@ -78,9 +110,26 @@ mvn spring-boot:run
 - `PUT /api/projects/{projectId}/tasks/{taskId}`: Update an existing task.
 - `DELETE /api/projects/{projectId}/tasks/{taskId}`: Delete a task.
 
+### Users
+- Each user has a single `role` chosen from {ADMIN, MANAGER, EMPLOYEE, CLIENT}.
+- `GET /api/users`: Retrieve all users.
+- `POST /api/users`: Create a new user.
+- `GET /api/users/{id}`: Retrieve a user by ID.
+- `PUT /api/users/{id}`: Update an existing user.
+- `DELETE /api/users/{id}`: Delete a user.
+- `PUT /api/users/{id}/role`: Update the user’s role.
+
+## Database Migrations
+Flyway scripts in `src/main/resources/db/migration`:
+```
+V1__init.sql  # creates tables projects, tasks, users (with 'role' column)
+```
+
 ## Testing
-Unit and integration tests are located under `src/test/java/com/tfg/app`.  
-To run tests:
+- Unit tests under `src/test/java/com/tfg/app/...`  
+- Integration tests in `OrkestriaBackendApplicationTests.java`  
+
+Run all tests:
 ```
 mvn test
 ```
