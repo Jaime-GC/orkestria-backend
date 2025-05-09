@@ -80,10 +80,10 @@ class UserControllerTest {
 
     @Test void addRole_setsRole() {
         User u = new User(1L,"bob","b@b", null);
-        when(userService.assignRole(1L, Role.ADMIN)).thenReturn(u);
+        when(userService.assignRole(1L, Role.CLIENT)).thenReturn(u);
 
-        var resp = controller.addRole(1L, Role.ADMIN);
+        var resp = controller.addRole(1L, Role.CLIENT);
         assertEquals(HttpStatus.OK, resp.getStatusCode());
-        verify(userService).assignRole(1L, Role.ADMIN);
+        verify(userService).assignRole(1L, Role.CLIENT);
     }
 }

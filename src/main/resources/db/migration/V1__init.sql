@@ -24,3 +24,34 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT 'CLIENT'
 );
+
+-- Resource module tables
+CREATE TABLE resource_groups (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    parent_id BIGINT,
+    FOREIGN KEY (parent_id) REFERENCES resource_groups(id)
+);
+
+CREATE TABLE resource_items (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    group_id BIGINT NOT NULL,
+    FOREIGN KEY (group_id) REFERENCES resource_groups(id)
+);
+
+CREATE TABLE employee_schedules (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    start_date_time TIMESTAMP NOT NULL,
+    end_date_time TIMESTAMP NOT NULL
+);
+
+CREATE TABLE space_reservations (
+    id SERIAL PRIMARY KEY,
+    resource_item_id BIGINT NOT NULL,
+    start_date_time TIMESTAMP NOT NULL,
+    end_date_time TIMESTAMP NOT NULL,
+    reserved_by VARCHAR(50) NOT NULL,
+    FOREIGN KEY (resource_item_id) REFERENCES resource_items(id)
+);

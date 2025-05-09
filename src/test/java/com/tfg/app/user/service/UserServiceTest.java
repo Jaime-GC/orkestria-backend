@@ -31,15 +31,12 @@ class UserServiceTest {
     }
 
     @Test void save_shouldCallSave() {
-        
         var u = new User(null, "bob", "b@b", Role.EMPLOYEE);
         when(userRepo.save(u)).thenReturn(u);
-        assertEquals(u, svc.save(u));
-        verify(userRepo).save(u);
-        
-        when(userRepo.save(u)).thenReturn(u);
-        assertEquals(u, svc.save(u));
-        verify(userRepo).save(u);
+
+        User result = svc.save(u);
+        assertEquals(u, result);
+        verify(userRepo, times(1)).save(u);
     }
 
     @Test void deleteById_shouldCallDelete() {
@@ -52,8 +49,8 @@ class UserServiceTest {
         when(userRepo.findById(1L)).thenReturn(Optional.of(u));
         when(userRepo.save(u)).thenReturn(u);
 
-        User res = svc.assignRole(1L, Role.MANAGER);
-        assertEquals(Role.MANAGER, res.getRole());
+        User res = svc.assignRole(1L, Role.EMPLOYEE);
+        assertEquals(Role.EMPLOYEE, res.getRole());
         verify(userRepo).save(u);
     }
 }
