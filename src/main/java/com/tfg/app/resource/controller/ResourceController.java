@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -247,5 +251,26 @@ public class ResourceController {
     @GetMapping("/reservations")
     public List<SpaceReservation> listAllReservations() {
         return svc.listAllReservations();
+    }
+
+    // Atrapa errores de tipo (p. ej. valor no cumple el tipo esperado)
+    @ExceptionHandler(InvalidFormatException.class)
+    public ResponseEntity<Map<String,String>> handleInvalidFormat(InvalidFormatException ex) {
+        String path = ex.getPath().stream()
+            .map(JsonMappingException.Reference::getFieldName)
+            .collect(Collectors.joining("."));
+        Map<String,String> error = new HashMap<>();
+        error.put("error",
+            "Campo inválido en '" + path + "': valor '" + ex.getValue() +
+            "' no coincide con el tipo esperado");
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    // Mantén el handler genérico si quieres seguir capturando otros JSON mal formados
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String,String>> handleJsonParseError(HttpMessageNotReadableException ex) {
+        Map<String,String> error = new HashMap<>();
+        error.put("error", "Formato inválido en el request");
+        return ResponseEntity.badRequest().body(error);
     }
 }
