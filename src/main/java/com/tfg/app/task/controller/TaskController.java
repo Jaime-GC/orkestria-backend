@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/projects/{projectId}/tasks")
+@RequestMapping("/api")
 public class TaskController {
 
     @Autowired
@@ -22,8 +22,22 @@ public class TaskController {
     @Autowired
     private ProjectService projectService;
 
-    @GetMapping
-    public ResponseEntity<List<Task>> getAllTasks(@PathVariable Long projectId) {
+    // Endpoints para todas las tareas (sin filtrar por proyecto)
+    @GetMapping("/tasks")
+    public ResponseEntity<List<Task>> getAllTasks() {
+        return ResponseEntity.ok(taskService.findAll());
+    }
+    
+    @GetMapping("/tasks/{taskId}")
+    public ResponseEntity<Task> getTaskById(@PathVariable Long taskId) {
+        return taskService.findById(taskId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Endpoints para tareas filtradas por proyecto
+    @GetMapping("/projects/{projectId}/tasks")
+    public ResponseEntity<List<Task>> getAllTasksByProject(@PathVariable Long projectId) {
         // Verificar que el proyecto existe
         projectService.findById(projectId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
@@ -32,7 +46,7 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
 
-    @PostMapping
+    @PostMapping("/projects/{projectId}/tasks")
     public ResponseEntity<Task> createTask(@PathVariable Long projectId, @RequestBody Task task) {
         // Verificar que el proyecto existe
         var projOpt = projectService.findById(projectId);
@@ -44,7 +58,7 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    @GetMapping("/{taskId}")
+    @GetMapping("/projects/{projectId}/tasks/{taskId}")
     public ResponseEntity<Task> getTask(@PathVariable Long projectId, @PathVariable Long taskId) {
 
         // Verificar proyecto
@@ -55,7 +69,7 @@ public class TaskController {
         return ResponseEntity.ok(t);
     }
 
-    @PutMapping("/{taskId}")
+    @PutMapping("/projects/{projectId}/tasks/{taskId}")
     public ResponseEntity<Task> updateTask(
         @PathVariable Long projectId,
         @PathVariable Long taskId,
@@ -83,7 +97,7 @@ public class TaskController {
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{taskId}")
+    @DeleteMapping("/projects/{projectId}/tasks/{taskId}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long projectId, @PathVariable Long taskId) {
         // Verificar que el proyecto existe
         projectService.findById(projectId)
@@ -91,5 +105,32 @@ public class TaskController {
 
         taskService.delete(taskId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/tasks")
+    public ResponseEntity<Task> createTask(@RequestBody Task task) {
+        // Lógica para crear una tarea sin asociar a un proyecto.
+        Task createdTask = taskService.createTask(task);
+        return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/tasks/{taskId}")
+    public ResponseEntity<Void> deleteTaskById(@PathVariable Long taskId) {
+        taskService.delete(taskId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/tasks/{taskId}")
+    public ResponseEntity<Task> updateTaskWithoutProject(@PathVariable Long taskId, @RequestBody Task task) {
+        // Obtener la tarea actual para conservar el valor actual de 'project'
+        Task currentTask = taskService.findById(taskId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Task not found"));
+        // Si el payload no especifica un nuevo project (es null), conservar el actual
+        if (task.getProject() == null) {
+            task.setProject(currentTask.getProject());
+        }
+        task.setId(taskId);
+        Task updated = taskService.update(taskId, task);
+        return ResponseEntity.ok(updated);
     }
 }

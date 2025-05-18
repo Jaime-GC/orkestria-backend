@@ -27,7 +27,7 @@ class TaskControllerTest {
         List<Task> list = List.of(new Task(), new Task());
         when(taskService.findAllByProjectId(1L)).thenReturn(list);
 
-        ResponseEntity<List<Task>> resp = controller.getAllTasks(1L);
+        ResponseEntity<List<Task>> resp = controller.getAllTasksByProject(1L);
         assertEquals(200, resp.getStatusCodeValue());
         assertEquals(2, resp.getBody().size());
     }
@@ -35,7 +35,7 @@ class TaskControllerTest {
     @Test void getAllTasks_whenProjectNotFound() {
         when(projectService.findById(2L)).thenReturn(Optional.empty());
         assertThrows(ResponseStatusException.class,
-            () -> controller.getAllTasks(2L));
+            () -> controller.getAllTasksByProject(2L));
     }
 
     @Test void createTask_whenProjectExists() {

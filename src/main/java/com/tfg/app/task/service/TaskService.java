@@ -41,4 +41,14 @@ public class TaskService {
     public void delete(Long taskId) {
         taskRepository.deleteById(taskId);
     }
+
+    public List<Task> findAll() {
+        return taskRepository.findAll();
+    }
+
+    public Task createTask(Task task) {
+        // Lógica adicional si se requiere, por ejemplo, asegurarse que no haya project asignado.
+        task.setProject(null);
+        return taskRepository.save(task);
+    }
 }

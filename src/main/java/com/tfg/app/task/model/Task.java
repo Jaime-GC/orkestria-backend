@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import com.tfg.app.project.model.Project;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "tasks")
@@ -17,7 +18,8 @@ public class Task {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
+    @JoinColumn(name = "project_id", nullable = true) 
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Avoids infinite recursion in JSON serialization
     private Project project;
 
     @Column(nullable = false)

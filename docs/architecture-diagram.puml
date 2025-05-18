@@ -1,0 +1,69 @@
+@startuml Orkestria Backend Architecture
+
+!theme plain
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam backgroundColor white
+
+title Arquitectura del Backend - Orkestria
+
+' Definición de capas
+package "Controllers" as controllers {
+  class UserController
+  class ProjectController
+  class TaskController
+  class ResourceController
+}
+
+package "Services" as services {
+  class UserService
+  class ProjectService
+  class TaskService
+  class ResourceService
+}
+
+package "Repositories" as repositories {
+  interface UserRepository
+  interface ProjectRepository
+  interface TaskRepository
+  interface ResourceGroupRepository
+  interface SpaceReservationRepository
+  interface EmployeeScheduleRepository
+}
+
+package "Entities (Models)" as entities {
+  class User
+  class Project
+  class Task
+  class ResourceGroup
+  class SpaceReservation
+  class EmployeeSchedule
+}
+
+' Relaciones entre capas
+UserController --> UserService
+ProjectController --> ProjectService
+TaskController --> ProjectService
+TaskController --> TaskService
+ResourceController --> ResourceService
+
+UserService --> UserRepository
+ProjectService --> ProjectRepository
+TaskService --> TaskRepository
+ResourceService --> ResourceGroupRepository
+ResourceService --> SpaceReservationRepository
+ResourceService --> EmployeeScheduleRepository
+
+UserRepository --> User
+ProjectRepository --> Project
+TaskRepository --> Task
+ResourceGroupRepository --> ResourceGroup
+SpaceReservationRepository --> SpaceReservation
+EmployeeScheduleRepository --> EmployeeSchedule
+
+' Relaciones entre entidades
+Task --> Project
+SpaceReservation --> ResourceGroup
+
+@enduml

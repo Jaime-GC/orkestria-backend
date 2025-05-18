@@ -8,7 +8,7 @@ CREATE TABLE projects (
 
 CREATE TABLE tasks (
     id SERIAL PRIMARY KEY,
-    project_id BIGINT NOT NULL,
+    project_id BIGINT, -- Se elimina NOT NULL para permitir tareas sin proyecto
     title VARCHAR(255) NOT NULL,
     description TEXT,
     priority VARCHAR(20) NOT NULL CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH')),

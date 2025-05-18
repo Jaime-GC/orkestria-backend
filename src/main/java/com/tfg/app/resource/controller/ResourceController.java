@@ -247,13 +247,13 @@ public class ResourceController {
         return ResponseEntity.noContent().build();
     }
 
-    // Nuevo endpoint: todas las reservas sin groupId
+
     @GetMapping("/reservations")
     public List<SpaceReservation> listAllReservations() {
         return svc.listAllReservations();
     }
 
-    // Atrapa errores de tipo (p. ej. valor no cumple el tipo esperado)
+
     @ExceptionHandler(InvalidFormatException.class)
     public ResponseEntity<Map<String,String>> handleInvalidFormat(InvalidFormatException ex) {
         String path = ex.getPath().stream()
@@ -266,7 +266,6 @@ public class ResourceController {
         return ResponseEntity.badRequest().body(error);
     }
 
-    // Mantén el handler genérico si quieres seguir capturando otros JSON mal formados
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String,String>> handleJsonParseError(HttpMessageNotReadableException ex) {
         Map<String,String> error = new HashMap<>();
