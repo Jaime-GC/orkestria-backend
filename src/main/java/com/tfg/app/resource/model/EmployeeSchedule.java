@@ -14,8 +14,11 @@ public class EmployeeSchedule {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column 
     private String username;
+
+    @Column(nullable = false)
+    private String title;
 
     @Column(nullable = false)
     private LocalDateTime startDateTime;

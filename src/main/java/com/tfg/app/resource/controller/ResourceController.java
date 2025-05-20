@@ -26,7 +26,7 @@ public class ResourceController {
     @Autowired
     private ResourceService svc;
 
-    // ResourceGroup
+    // ResourceGroup CRUD
     @PostMapping("/resource-groups")
     public ResponseEntity<ResourceGroup> createGroup(@RequestBody Map<String, Object> payload) {
         ResourceGroup g = new ResourceGroup();
@@ -38,7 +38,7 @@ public class ResourceController {
             return ResponseEntity.badRequest().build();
         }
         
-        // Handle parent relationship - support both formats
+        // Handle parent relationship – support both formats
         if (payload.containsKey("parentId")) {
             // Direct parentId format: { "parentId": 123 }
             Object parentIdObj = payload.get("parentId");
@@ -111,8 +111,7 @@ public class ResourceController {
         return ResponseEntity.noContent().build();
     }
 
-
-    // EmployeeSchedule
+    // EmployeeSchedule CRUD 
     @PostMapping("/employee-schedules")
     public ResponseEntity<EmployeeSchedule> createSchedule(@RequestBody EmployeeSchedule s) {
         return ResponseEntity.status(HttpStatus.CREATED).body(svc.saveSchedule(s));
@@ -140,8 +139,8 @@ public class ResourceController {
         return ResponseEntity.noContent().build();
     }
 
-    // Reservations
-        @GetMapping("/resource-groups/{id}/reservations") 
+    // Reservations endpoints
+    @GetMapping("/resource-groups/{id}/reservations") 
     public List<SpaceReservation> listReservations(@PathVariable("id") Long groupId) {
         return svc.listReservations(groupId);
     }
@@ -150,17 +149,14 @@ public class ResourceController {
     public ResponseEntity<?> createReservation(
         @PathVariable("id") Long groupId,
         @RequestBody SpaceReservation r) {
-        
         // Check if the resource group exists
         var optGroup = svc.findGroup(groupId);
         if (optGroup.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         r.setResourceGroup(optGroup.get());
-
         try {
             SpaceReservation saved = svc.createReservation(r);
-
             // Use HashMap instead of Map.of to handle null values
             Map<String,Object> result = new HashMap<>();
             result.put("id", saved.getId());
@@ -168,9 +164,7 @@ public class ResourceController {
             result.put("startDateTime", saved.getStartDateTime() != null ? saved.getStartDateTime().toString() : "");
             result.put("endDateTime", saved.getEndDateTime() != null ? saved.getEndDateTime().toString() : "");
             result.put("reservedBy", saved.getReservedBy() != null ? saved.getReservedBy() : "");
-            
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
-
         } catch (IllegalStateException ex) {
             return ResponseEntity
                      .status(HttpStatus.BAD_REQUEST)
@@ -183,9 +177,7 @@ public class ResourceController {
         @PathVariable("id") Long groupId,
         @RequestParam("from") LocalDateTime from,
         @RequestParam("to") LocalDateTime to) {
-
         var reservations = svc.findOverlappingReservations(groupId, from, to);
-
         return reservations.stream().map(r -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", r.getId());
@@ -201,8 +193,9 @@ public class ResourceController {
     public ResponseEntity<SpaceReservation> getReservation(
         @PathVariable Long groupId, 
         @PathVariable Long resId) {
-        return svc.findReservation(resId).map(ResponseEntity::ok)
-            .orElse(ResponseEntity.notFound().build());
+        return svc.findReservation(resId)
+                 .map(ResponseEntity::ok)
+                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/resource-groups/{groupId}/reservations/{resId}")
@@ -210,32 +203,25 @@ public class ResourceController {
         @PathVariable Long groupId,
         @PathVariable Long resId,
         @RequestBody SpaceReservation r) {
-
         // Check if the resource group exists
         Optional<ResourceGroup> groupOpt = svc.findGroup(groupId);
         if (groupOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
         // Check if the reservation exists
         Optional<SpaceReservation> resOpt = svc.findReservation(resId);
         if (resOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
         r.setResourceGroup(groupOpt.get());
         r.setId(resId);
-
         SpaceReservation updated = svc.updateReservation(resId, r);
-
-        // Use HashMap instead of Map.of to handle null values
         Map<String, Object> resp = new HashMap<>();
         resp.put("id", updated.getId());
         resp.put("title", updated.getTitle() != null ? updated.getTitle() : "");
         resp.put("startDateTime", updated.getStartDateTime() != null ? updated.getStartDateTime().toString() : "");
         resp.put("endDateTime", updated.getEndDateTime() != null ? updated.getEndDateTime().toString() : "");
         resp.put("reservedBy", updated.getReservedBy() != null ? updated.getReservedBy() : "");
-        
         return ResponseEntity.ok(resp);
     }
 
@@ -247,12 +233,34 @@ public class ResourceController {
         return ResponseEntity.noContent().build();
     }
 
-
+    // List all reservations (without filtering by group)
     @GetMapping("/reservations")
     public List<SpaceReservation> listAllReservations() {
         return svc.listAllReservations();
     }
 
+    // New endpoint PUT for updating a reservation (without group)
+    @PutMapping("/reservations/{resId}")
+    public ResponseEntity<SpaceReservation> updateReservationWithoutGroup(
+            @PathVariable Long resId, 
+            @RequestBody SpaceReservation reservation) {
+        SpaceReservation existing = svc.findReservation(resId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found"));
+        // If the body does not supply a ResourceGroup, keep the current one (or null)
+        if (reservation.getResourceGroup() == null) {
+            reservation.setResourceGroup(existing.getResourceGroup());
+        }
+        reservation.setId(resId);
+        SpaceReservation updated = svc.updateReservation(resId, reservation);
+        return ResponseEntity.ok(updated);
+    }
+
+    // New endpoint DELETE for deleting a reservation (without group)
+    @DeleteMapping("/reservations/{resId}")
+    public ResponseEntity<Void> deleteReservationWithoutGroup(@PathVariable Long resId) {
+        svc.deleteReservation(resId);
+        return ResponseEntity.noContent().build();
+    }
 
     @ExceptionHandler(InvalidFormatException.class)
     public ResponseEntity<Map<String,String>> handleInvalidFormat(InvalidFormatException ex) {
@@ -261,15 +269,15 @@ public class ResourceController {
             .collect(Collectors.joining("."));
         Map<String,String> error = new HashMap<>();
         error.put("error",
-            "Campo inválido en '" + path + "': valor '" + ex.getValue() +
-            "' no coincide con el tipo esperado");
+            "Invalid field '" + path + "': value '" + ex.getValue() +
+            "' does not match the expected type");
         return ResponseEntity.badRequest().body(error);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String,String>> handleJsonParseError(HttpMessageNotReadableException ex) {
         Map<String,String> error = new HashMap<>();
-        error.put("error", "Formato inválido en el request");
+        error.put("error", "Invalid request format");
         return ResponseEntity.badRequest().body(error);
     }
 }

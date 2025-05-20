@@ -18,7 +18,7 @@ class EmployeeScheduleServiceTest {
     @InjectMocks ResourceService svc;
 
     @Test void saveSchedule_shouldDelegate() {
-        EmployeeSchedule e = new EmployeeSchedule(null,"bob", LocalDateTime.now(), LocalDateTime.now().plusHours(1));
+        EmployeeSchedule e = new EmployeeSchedule(null, "bob", "Bob's Schedule", LocalDateTime.now(), LocalDateTime.now().plusHours(1));
         when(repo.save(e)).thenReturn(e);
         assertEquals(e, svc.saveSchedule(e));
     }
