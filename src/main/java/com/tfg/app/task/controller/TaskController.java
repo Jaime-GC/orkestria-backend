@@ -22,6 +22,11 @@ public class TaskController {
     @Autowired
     private ProjectService projectService;
 
+    public TaskController(TaskService taskService, ProjectService projectService) {
+        this.taskService = taskService;
+        this.projectService = projectService;
+    }
+
     // Endpoints for all tasks (without filtering by project)
     @GetMapping("/tasks")
     public ResponseEntity<List<Task>> getAllTasks() {

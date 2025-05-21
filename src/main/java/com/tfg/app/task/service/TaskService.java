@@ -7,12 +7,32 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+public interface TaskService {
+    Task save(Task task);
+
+    List<Task> findAllByProjectId(Long projectId);
+
+    Optional<Task> findById(Long taskId);
+
+    Task update(Long taskId, Task task);
+
+    Task update(Task task);
+
+    void delete(Long taskId);
+
+    List<Task> findAll();
+
+    Task createTask(Task task);
+
+    Optional<Task> getTask(Long projectId, Long taskId);
+}
+
 @Service
-public class TaskService {
+class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
 
-    public TaskService(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
     }
 
@@ -50,5 +70,19 @@ public class TaskService {
         // Lógica adicional si se requiere, por ejemplo, asegurarse que no haya project asignado.
         task.setProject(null);
         return taskRepository.save(task);
+    }
+
+    @Override
+    public Optional<Task> getTask(Long projectId, Long taskId) {
+        // Implement the actual logic to find a task by project ID and task ID
+        Optional<Task> taskOpt = taskRepository.findById(taskId);
+        if (taskOpt.isPresent()) {
+            Task task = taskOpt.get();
+            // Check if task belongs to the specified project
+            if (task.getProject() != null && task.getProject().getId().equals(projectId)) {
+                return Optional.of(task);
+            }
+        }
+        return Optional.empty();
     }
 }

@@ -2,7 +2,6 @@ package com.tfg.app.task.service;
 
 import com.tfg.app.task.model.Task;
 import com.tfg.app.task.repository.TaskRepository;
-import com.tfg.app.task.service.TaskService;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +22,7 @@ public class TaskServiceUnitTest {
     private TaskRepository taskRepository;
 
     @InjectMocks
-    private TaskService taskService;
+    private TaskServiceImpl taskService;
 
     @Test
     void save_shouldDelegateToRepository() {
@@ -71,5 +70,51 @@ public class TaskServiceUnitTest {
     void delete_shouldInvokeRepository() {
         taskService.delete(7L);
         verify(taskRepository).deleteById(7L);
+    }
+    
+    @Test
+    void getTask_shouldReturnTaskWithMatchingProjectId() {
+        // Arrange
+        Long projectId = 1L;
+        Long taskId = 2L;
+        Task task = new Task();
+        task.setId(taskId);
+        
+        // Create a task with matching project
+        com.tfg.app.project.model.Project project = new com.tfg.app.project.model.Project();
+        project.setId(projectId);
+        task.setProject(project);
+        
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+        
+        // Act
+        Optional<Task> result = taskService.getTask(projectId, taskId);
+        
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(taskId, result.get().getId());
+    }
+    
+    @Test
+    void getTask_shouldReturnEmptyWhenProjectIdDoesNotMatch() {
+        // Arrange
+        Long projectId = 1L;
+        Long differentProjectId = 5L;
+        Long taskId = 2L;
+        Task task = new Task();
+        task.setId(taskId);
+        
+        // Create a task with different project ID
+        com.tfg.app.project.model.Project project = new com.tfg.app.project.model.Project();
+        project.setId(differentProjectId); // Different from the one we'll search with
+        task.setProject(project);
+        
+        when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
+        
+        // Act
+        Optional<Task> result = taskService.getTask(projectId, taskId);
+        
+        // Assert
+        assertFalse(result.isPresent());
     }
 }

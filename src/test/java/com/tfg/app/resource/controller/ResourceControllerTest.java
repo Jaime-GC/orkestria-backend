@@ -1,121 +1,179 @@
 package com.tfg.app.resource.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tfg.app.resource.model.*;
 import com.tfg.app.resource.service.ResourceService;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(ResourceController.class)
 class ResourceControllerTest {
 
-    @Mock ResourceService svc;
-    @InjectMocks ResourceController ctrl;
+    @MockBean
+    private ResourceService service;
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     // Group CRUD
-    @Test void createGroup_returnsCreated() {
-        // Prepare stubbed group
+    @Test
+    void createGroup_returnsCreated() throws Exception {
         ResourceGroup g = new ResourceGroup();
         g.setId(10L);
-        when(svc.saveGroup(any(ResourceGroup.class))).thenReturn(g);
+        when(service.saveGroup(any())).thenReturn(g);
 
-        // Payload as frontend sends it
-        Map<String,Object> payload = Map.of("name", "TestGroup");
-
-        // Call controller
-        ResponseEntity<ResourceGroup> resp = ctrl.createGroup(payload);
-
-        // Verify
-        assertEquals(HttpStatus.CREATED, resp.getStatusCode());
-        assertEquals(10L, resp.getBody().getId());
+        Map<String, Object> payload = Map.of("name", "TestGroup");
+        mockMvc.perform(post("/api/resource-groups")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(payload)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id", is(10)));
     }
 
-    @Test void listGroups_returnsAll() {
-        var list = List.of(new ResourceGroup(), new ResourceGroup());
-        when(svc.listGroups()).thenReturn(list);
-        assertEquals(2, ctrl.listGroups().size());
+    @Test
+    void listGroups_returnsAll() throws Exception {
+        when(service.listGroups()).thenReturn(List.of(new ResourceGroup(), new ResourceGroup()));
+        mockMvc.perform(get("/api/resource-groups"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(2)));
     }
 
-    @Test void getGroup_notFound() {
-        when(svc.findGroup(1L)).thenReturn(Optional.empty());
-        assertEquals(HttpStatus.NOT_FOUND, ctrl.getGroup(1L).getStatusCode());
+    @Test
+    void getGroup_notFound() throws Exception {
+        when(service.findGroup(1L)).thenReturn(Optional.empty());
+        mockMvc.perform(get("/api/resource-groups/1"))
+            .andExpect(status().isNotFound());
     }
 
-    @Test void updateGroup_returnsOk() {
+    @Test
+    void updateGroup_returnsOk() throws Exception {
         ResourceGroup g = new ResourceGroup();
-        when(svc.saveGroup(any())).thenReturn(g);
-        var resp = ctrl.updateGroup(2L, g);
-        assertEquals(HttpStatus.OK, resp.getStatusCode());
+        g.setName("Updated Group");
+        when(service.saveGroup(any())).thenReturn(g);
+
+        mockMvc.perform(put("/api/resource-groups/2")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(g)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name", is("Updated Group")));
     }
 
-    @Test void deleteGroup_returnsNoContent() {
-        var resp = ctrl.deleteGroup(3L);
-        assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
-        verify(svc).deleteGroup(3L);
+    @Test
+    void deleteGroup_returnsNoContent() throws Exception {
+        mockMvc.perform(delete("/api/resource-groups/3"))
+            .andExpect(status().isNoContent());
+        verify(service).deleteGroup(3L);
     }
 
-    // Schedule CRUD
-    @Test void createSchedule_returnsCreated() {
+    // EmployeeSchedule CRUD
+    @Test
+    void createSchedule_returnsCreated() throws Exception {
         EmployeeSchedule s = new EmployeeSchedule();
-        when(svc.saveSchedule(s)).thenReturn(s);
-        assertEquals(HttpStatus.CREATED, ctrl.createSchedule(s).getStatusCode());
+        s.setUsername("user1");
+        when(service.saveSchedule(any())).thenReturn(s);
+
+        mockMvc.perform(post("/api/employee-schedules")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(s)))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.username", is("user1")));
     }
 
-    // Reservations endpoints
-    @Test void listReservations_delegates() {
-        when(svc.listReservations(1L)).thenReturn(List.of());
-        assertTrue(ctrl.listReservations(1L).isEmpty());
+    @Test
+    void listSchedules_returnsAll() throws Exception {
+        EmployeeSchedule schedule1 = new EmployeeSchedule(1L, "user1", "Meeting", LocalDateTime.now(), LocalDateTime.now().plusHours(1));
+        EmployeeSchedule schedule2 = new EmployeeSchedule(2L, "user2", "Training", LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(1).plusHours(2));
+        when(service.listSchedules()).thenReturn(List.of(schedule1, schedule2));
+
+        mockMvc.perform(get("/api/employee-schedules"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$[0].username", is("user1")))
+            .andExpect(jsonPath("$[1].username", is("user2")));
     }
 
-    @Test void createReservation_groupNotFound() {
-        when(svc.findGroup(2L)).thenReturn(Optional.empty());
-        assertEquals(HttpStatus.NOT_FOUND,
-            ctrl.createReservation(2L, new SpaceReservation()).getStatusCode());
+    @Test
+    void getSchedule_notFound() throws Exception {
+        when(service.findSchedule(999L)).thenReturn(Optional.empty());
+        mockMvc.perform(get("/api/employee-schedules/999"))
+            .andExpect(status().isNotFound());
     }
 
-    @Test void getReservation_notFound() {
-        when(svc.findReservation(3L)).thenReturn(Optional.empty());
-        assertEquals(HttpStatus.NOT_FOUND,
-            ctrl.getReservation(1L, 3L).getStatusCode());
+    @Test
+    void updateSchedule_success() throws Exception {
+        EmployeeSchedule s = new EmployeeSchedule();
+        s.setUsername("updatedUser");
+        when(service.saveSchedule(any())).thenReturn(s);
+
+        mockMvc.perform(put("/api/employee-schedules/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(s)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.username", is("updatedUser")));
     }
 
-    @Test void updateReservation_notFound() {
+    @Test
+    void deleteSchedule_success() throws Exception {
+        mockMvc.perform(delete("/api/employee-schedules/1"))
+            .andExpect(status().isNoContent());
+        verify(service).deleteSchedule(1L);
+    }
+
+    // Reservations
+    @Test
+    void createReservation_groupNotFound() throws Exception {
+        when(service.findGroup(999L)).thenReturn(Optional.empty());
+        mockMvc.perform(post("/api/resource-groups/999/reservations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void createReservation_conflict() throws Exception {
+        Long groupId = 1L;
         ResourceGroup group = new ResourceGroup();
-        when(svc.findGroup(4L)).thenReturn(Optional.of(group));
-        when(svc.findReservation(5L)).thenReturn(Optional.empty());
-        assertEquals(HttpStatus.NOT_FOUND,
-            ctrl.updateReservation(4L, 5L, new SpaceReservation()).getStatusCode());
+        group.setId(groupId);
+
+        SpaceReservation reservation = new SpaceReservation();
+        reservation.setTitle("Conflicting Meeting");
+        reservation.setStartDateTime(LocalDateTime.now());
+        reservation.setEndDateTime(LocalDateTime.now().plusHours(1));
+
+        when(service.findGroup(groupId)).thenReturn(Optional.of(group));
+        when(service.createReservation(any(SpaceReservation.class))).thenThrow(new IllegalStateException("Conflicto de solapamiento"));
+
+        mockMvc.perform(post("/api/resource-groups/" + groupId + "/reservations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(reservation)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error", is("Conflicto de solapamiento")));
     }
 
-    @Test void deleteReservation_returnsNoContent() {
-        var resp = ctrl.deleteReservation(1L, 6L);
-        assertEquals(HttpStatus.NO_CONTENT, resp.getStatusCode());
-        verify(svc).deleteReservation(6L);
-    }
+    @Test
+    void handleInvalidFormat_returnsProperError() throws Exception {
+        String invalidPayload = "{ \"startDateTime\": \"invalid-date\" }";
 
-    @Test void createReservation_success() {
-        // Add this new test to verify title is included
-        SpaceReservation r = new SpaceReservation();
-        r.setTitle("Meeting Room");
-        r.setStartDateTime(LocalDateTime.now());
-        r.setEndDateTime(LocalDateTime.now().plusHours(1));
-        r.setReservedBy("test-user");
-        
-        ResourceGroup group = new ResourceGroup(1L);
-        when(svc.findGroup(1L)).thenReturn(Optional.of(group));
-        when(svc.createReservation(any(SpaceReservation.class))).thenReturn(r);
-        
-        ResponseEntity<?> response = ctrl.createReservation(1L, r);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        Map<String, Object> body = (Map<String, Object>) response.getBody();
-        assertEquals("Meeting Room", body.get("title"));
+        mockMvc.perform(post("/api/resource-groups/1/reservations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidPayload))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.error", containsString("Invalid request format")));
     }
 }
