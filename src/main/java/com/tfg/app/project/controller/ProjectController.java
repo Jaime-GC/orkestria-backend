@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -24,6 +25,14 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<Project> save(@RequestBody Project project) {
+        // Establecer valores por defecto si son nulos
+        if (project.getStartDate() == null) {
+            project.setStartDate(java.time.LocalDate.now());
+        }
+        if (project.getStatus() == null) {
+            project.setStatus(Project.ProjectStatus.PLANNED);
+        }
+        
         Project savedProject = projectService.save(project);
         return new ResponseEntity<>(savedProject, HttpStatus.CREATED);
     }

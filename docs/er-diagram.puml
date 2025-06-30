@@ -1,0 +1,70 @@
+@startuml ERD
+
+skinparam backgroundColor white
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+title ERD - Orkestria Backend
+
+entity "Users" as Users {
+    * id : BIGINT
+    --
+    username : VARCHAR
+    email    : VARCHAR
+    role     : VARCHAR
+}
+
+entity "Projects" as Projects {
+    * id : BIGINT
+    --
+    name        : VARCHAR
+    description : VARCHAR
+    start_date  : DATE
+    status      : VARCHAR
+}
+
+entity "Tasks" as Tasks {
+    * id         : BIGINT
+    --
+    title       : VARCHAR
+    description : VARCHAR
+    priority    : VARCHAR
+    type        : VARCHAR
+    status      : VARCHAR
+    project_id  : BIGINT
+}
+
+entity "ResourceGroups" as ResourceGroups {
+    * id           : BIGINT
+    --
+    name          : VARCHAR
+    parent_id     : BIGINT
+    is_reservable : BOOLEAN
+}
+
+entity "SpaceReservations" as SpaceReservations {
+    * id               : BIGINT
+    --
+    title             : VARCHAR
+    start_date_time   : TIMESTAMP
+    end_date_time     : TIMESTAMP
+    reserved_by       : VARCHAR
+    resource_group_id : BIGINT
+}
+
+entity "EmployeeSchedules" as EmployeeSchedules {
+    * id               : BIGINT
+    --
+    username          : VARCHAR
+    title             : VARCHAR
+    start_date_time   : TIMESTAMP
+    end_date_time     : TIMESTAMP
+}
+
+' Relaciones
+Projects ||--o{ Tasks             : contains
+ResourceGroups ||--o{ SpaceReservations : has
+ResourceGroups ||--o{ ResourceGroups : parent_of
+' EmployeeSchedules no FK
+
+@enduml

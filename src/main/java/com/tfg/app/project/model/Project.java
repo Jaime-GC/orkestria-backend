@@ -25,9 +25,11 @@ public class Project {
 
     private String description;
 
+    @Column(nullable = true)
     private LocalDate startDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
     private ProjectStatus status;
 
     public enum ProjectStatus {

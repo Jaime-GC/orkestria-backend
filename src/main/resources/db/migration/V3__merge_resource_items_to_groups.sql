@@ -1,11 +1,6 @@
--- Create resource_groups table if it doesn't exist
-CREATE TABLE IF NOT EXISTS resource_groups (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    parent_id BIGINT,
-    is_reservable BOOLEAN NOT NULL DEFAULT FALSE,
-    FOREIGN KEY (parent_id) REFERENCES resource_groups(id)
-);
+-- Add is_reservable column to resource_groups if it doesn't exist
+ALTER TABLE resource_groups 
+ADD COLUMN IF NOT EXISTS is_reservable BOOLEAN NOT NULL DEFAULT FALSE;
 
 -- Create temporary table to check if resource_items exists
 CREATE OR REPLACE FUNCTION migrate_resource_items() RETURNS void AS $$
