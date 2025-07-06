@@ -1,0 +1,16 @@
+com\tfg\app\user\controller\UserControllerTest.class
+com\tfg\app\user\service\UserServiceTest.class
+com\tfg\app\resource\model\ResourceGroupTest.class
+com\tfg\app\resource\service\EmployeeScheduleServiceTest.class
+com\tfg\app\user\model\UserModelTest.class
+com\tfg\app\task\controller\TaskControllerTest.class
+com\tfg\app\project\service\ProjectServiceUnitTest.class
+com\tfg\app\OrkestriaBackendApplicationTests.class
+com\tfg\app\resource\model\EmployeeScheduleTest.class
+com\tfg\app\project\model\ProjectModelTest.class
+com\tfg\app\resource\model\SpaceReservationTest.class
+com\tfg\app\resource\service\SpaceReservationServiceTest.class
+com\tfg\app\project\controller\ProjectControllerTest.class
+com\tfg\app\task\service\TaskServiceUnitTest.class
+com\tfg\app\resource\controller\ResourceControllerTest.class
+com\tfg\app\resource\service\ResourceGroupServiceTest.class
