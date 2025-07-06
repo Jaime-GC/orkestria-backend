@@ -3,11 +3,13 @@ package com.tfg.app.project.service;
 import com.tfg.app.project.model.Project;
 import com.tfg.app.project.repository.ProjectRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class ProjectService {
 
     private final ProjectRepository projectRepository;

@@ -3,11 +3,13 @@ package com.tfg.app.user.service;
 import com.tfg.app.user.model.User;
 import com.tfg.app.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class UserService {
 
     private final UserRepository userRepo;
