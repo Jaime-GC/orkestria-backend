@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import com.tfg.app.project.model.Project;
+import com.tfg.app.user.model.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
@@ -22,6 +23,11 @@ public class Task {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Avoids infinite recursion in JSON serialization
     private Project project;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_user_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private User assignedUser;
+
     @Column(nullable = false)
     private String title;
 
@@ -36,6 +42,8 @@ public class Task {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+
+    
     public enum Priority {
         LOW, MEDIUM, HIGH
     }

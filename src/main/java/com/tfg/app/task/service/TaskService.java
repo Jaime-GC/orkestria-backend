@@ -2,6 +2,8 @@ package com.tfg.app.task.service;
 
 import com.tfg.app.task.model.Task;
 import com.tfg.app.task.repository.TaskRepository;
+import com.tfg.app.user.model.User;
+import com.tfg.app.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,18 +27,28 @@ public interface TaskService {
     Task createTask(Task task);
 
     Optional<Task> getTask(Long projectId, Long taskId);
+    
+    Task assignUser(Long taskId, Long userId);
 }
 
 @Service
 class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
 
-    public TaskServiceImpl(TaskRepository taskRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, UserRepository userRepository) {
         this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
     }
 
     public Task save(Task task) {
+        // Manejar la asignación de usuario si viene en el body
+        if (task.getAssignedUser() != null && task.getAssignedUser().getId() != null) {
+            User user = userRepository.findById(task.getAssignedUser().getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            task.setAssignedUser(user);
+        }
         return taskRepository.save(task);
     }
 
@@ -49,6 +61,12 @@ class TaskServiceImpl implements TaskService {
     }
 
     public Task update(Long taskId, Task task) {
+        // Manejar la asignación de usuario si viene en el body
+        if (task.getAssignedUser() != null && task.getAssignedUser().getId() != null) {
+            User user = userRepository.findById(task.getAssignedUser().getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            task.setAssignedUser(user);
+        }
         task.setId(taskId);
         return taskRepository.save(task);
     }
@@ -84,5 +102,15 @@ class TaskServiceImpl implements TaskService {
             }
         }
         return Optional.empty();
+    }
+
+    @Override
+    public Task assignUser(Long taskId, Long userId) {
+        Task task = taskRepository.findById(taskId)
+            .orElseThrow(() -> new RuntimeException("Task not found"));
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        task.setAssignedUser(user);
+        return taskRepository.save(task);
     }
 }

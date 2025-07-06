@@ -141,4 +141,11 @@ public class TaskController {
         Task updated = taskService.update(taskId, task);
         return ResponseEntity.ok(updated);
     }
+
+    // Assign or modify the user of an existing task
+    @PutMapping("/tasks/{taskId}/assign-user/{userId}")
+    public ResponseEntity<Task> assignUserToTask(@PathVariable Long taskId, @PathVariable Long userId) {
+        Task task = taskService.assignUser(taskId, userId);
+        return ResponseEntity.ok(task);
+    }
 }

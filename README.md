@@ -100,6 +100,7 @@ Access the API at http://localhost:8080/api and Swagger documentation at http://
 - `GET /api/tasks/{id}`: Get task by ID
 - `PUT /api/tasks/{id}`: Update a task
 - `DELETE /api/tasks/{id}`: Delete a task
+- `PUT /api/tasks/{taskId}/assign-user/{userId}`: Assign a user to a task
 - `GET /api/projects/{projectId}/tasks`: Get all tasks for a project
 - `POST /api/projects/{projectId}/tasks`: Create a task in a project
 - `GET /api/projects/{projectId}/tasks/{taskId}`: Get task by ID within a project
@@ -112,6 +113,7 @@ Access the API at http://localhost:8080/api and Swagger documentation at http://
 - `GET /api/users/{id}`: Get user by ID
 - `PUT /api/users/{id}`: Update user
 - `DELETE /api/users/{id}`: Delete user
+- `PUT /api/users/{id}/role`: Assign a role to a user
 
 ### Resource Groups
 - `GET /api/resource-groups`: List all resource groups
@@ -142,7 +144,7 @@ Access the API at http://localhost:8080/api and Swagger documentation at http://
 ## Database Schema
 The database includes tables for:
 - `projects`: Project management
-- `tasks`: Task management (can be associated with projects or standalone)
+- `tasks`: Task management (can be associated with projects or standalone, and can be assigned to users)
 - `users`: User management
 - `resource_groups`: Hierarchical resource organization
 - `employee_schedules`: Employee scheduling with title, start and end times
@@ -157,4 +159,3 @@ Run tests and generate coverage report:
 mvn clean test jacoco:report
 ```
 
-View coverage report at index.html
