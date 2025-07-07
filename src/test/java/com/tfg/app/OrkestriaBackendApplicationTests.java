@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(
     webEnvironment = WebEnvironment.RANDOM_PORT,
     properties = {
-        // Desactiva Flyway y fuerza a Hibernate a recrear el esquema en memoria
+        // Disable Flyway and force Hibernate to recreate the schema in memory
         "spring.flyway.enabled=false",
         "spring.jpa.hibernate.ddl-auto=create-drop"
     }
@@ -35,7 +35,7 @@ class OrkestriaBackendApplicationTests {
 
     @Test
     void createProjectAndTaskFlow() {
-        // 1) Crear proyecto
+        // 1) Create project
         Project project = new Project();
         project.setName("Test Project");
         project.setDescription("Project for integration test");
@@ -47,7 +47,7 @@ class OrkestriaBackendApplicationTests {
         assertEquals(HttpStatus.CREATED, projectResponse.getStatusCode());
         Long projectId = projectResponse.getBody().getId();
 
-        // 2) Crear tarea
+        // 2) Create task
         Task task = new Task();
         task.setTitle("Test Task");
         task.setDescription("Task for integration test");
@@ -64,7 +64,7 @@ class OrkestriaBackendApplicationTests {
         assertEquals(HttpStatus.CREATED, postTask.getStatusCode());
         Long taskId = postTask.getBody().getId();
 
-        // 3) Listar tareas y comprobar que aparece la creada
+        // 3) List tasks and verify the created one appears
         ResponseEntity<Task[]> getTasks =
             restTemplate.getForEntity(
                 "/api/projects/" + projectId + "/tasks",
@@ -79,7 +79,7 @@ class OrkestriaBackendApplicationTests {
 
     @Test
     void userCrudFlow() {
-        // 1) Crear usuario con rol CLIENT
+        // 1) Create user with role CLIENT
         User user = User.builder()
                         .username("alice")
                         .email("alice@example.com")
@@ -93,17 +93,17 @@ class OrkestriaBackendApplicationTests {
         assertNotNull(created);
         Long userId = created.getId();
 
-        // 2) Listar usuarios y comprobar que esté alice
+        // 2) List users and verify that alice is present
         ResponseEntity<User[]> listRes =
             restTemplate.getForEntity("/api/users", User[].class);
         assertEquals(HttpStatus.OK, listRes.getStatusCode());
         assertTrue(
             Arrays.stream(listRes.getBody())
                   .anyMatch(u -> u.getId().equals(userId)),
-            "El usuario creado debe aparecer en la lista"
+            "The created user must appear in the list"
         );
 
-        // 3) Actualizar email
+        // 3) Update email
         created.setEmail("alice2@example.com");
         HttpEntity<User> updateReq = new HttpEntity<>(created);
         ResponseEntity<User> updateRes =
@@ -116,16 +116,16 @@ class OrkestriaBackendApplicationTests {
         assertEquals(HttpStatus.OK, updateRes.getStatusCode());
         assertEquals("alice2@example.com", updateRes.getBody().getEmail());
 
-        // 4) Obtener por ID y verificar email
+        // 4) Get by ID and verify email
         ResponseEntity<User> getRes =
             restTemplate.getForEntity("/api/users/" + userId, User.class);
         assertEquals(HttpStatus.OK, getRes.getStatusCode());
         assertEquals("alice2@example.com", getRes.getBody().getEmail());
 
-        // 5) Borrar usuario
+        // 5) Delete user
         restTemplate.delete("/api/users/" + userId);
 
-        // 6) Verificar 404 NOT_FOUND al consultar de nuevo
+        // 6) Verify 404 NOT_FOUND when querying again
         ResponseEntity<User> afterDelete =
             restTemplate.getForEntity("/api/users/" + userId, User.class);
         assertEquals(HttpStatus.NOT_FOUND, afterDelete.getStatusCode());
@@ -133,7 +133,7 @@ class OrkestriaBackendApplicationTests {
 
     @Test
     void userRoleFlow() {
-        // 1) Crear usuario con rol CLIENT
+        // 1) Create user with role CLIENT
         User user = User.builder()
                         .username("bob")
                         .email("bob@example.com")
@@ -148,7 +148,7 @@ class OrkestriaBackendApplicationTests {
         Long userId = created.getId();
         assertEquals(User.Role.CLIENT, created.getRole());
 
-        // 2) Cambiar rol a EMPLOYEE mediante PUT /api/users/{id}
+        // 2) Change role to EMPLOYEE via PUT /api/users/{id}
         created.setRole(User.Role.EMPLOYEE);
         HttpEntity<User> roleUpdateReq = new HttpEntity<>(created);
         ResponseEntity<User> roleUpdateRes =
@@ -161,7 +161,7 @@ class OrkestriaBackendApplicationTests {
         assertEquals(HttpStatus.OK, roleUpdateRes.getStatusCode());
         assertEquals(User.Role.EMPLOYEE, roleUpdateRes.getBody().getRole());
 
-        // 3) Verificar GET /api/users/{id} devuelve rol EMPLOYEE
+        // 3) Verify GET /api/users/{id} returns role EMPLOYEE
         ResponseEntity<User> getRes =
             restTemplate.getForEntity("/api/users/" + userId, User.class);
         assertEquals(HttpStatus.OK, getRes.getStatusCode());
@@ -170,9 +170,9 @@ class OrkestriaBackendApplicationTests {
 
     @Test
     void resourceModuleFlow() {
-        // 1) Crear grupo padre
+        // 1) Create parent group
         Map<String,Object> parent = new LinkedHashMap<>();
-        parent.put("name", "Salas");
+        parent.put("name", "Rooms");
         ResponseEntity<Map> pRes = restTemplate.postForEntity(
             "/api/resource-groups",
             new HttpEntity<>(parent, jsonHeaders()),
@@ -181,10 +181,10 @@ class OrkestriaBackendApplicationTests {
         assertEquals(HttpStatus.CREATED, pRes.getStatusCode());
         Long pId = ((Number)pRes.getBody().get("id")).longValue();
 
-        // 2) Crear subgrupo referenciando al padre (anidado en "parent")
+        // 2) Create sub-group referencing the parent (nested in "parent")
         Map<String,Object> child = new LinkedHashMap<>();
-        child.put("name", "Sala VIP");
-        // anidamos el objeto parent con su id, no parentId
+        child.put("name", "VIP Room");
+        // nest the parent object with its id, not parentId
         child.put("parent", Map.of("id", pId));
         ResponseEntity<Map> cRes = restTemplate.postForEntity(
             "/api/resource-groups",
@@ -193,14 +193,14 @@ class OrkestriaBackendApplicationTests {
         );
         assertEquals(HttpStatus.CREATED, cRes.getStatusCode());
         Long cId = ((Number)cRes.getBody().get("id")).longValue();
-        // comprobamos que el parent anidado viene con su id
+        // verify the nested parent comes with its id
         @SuppressWarnings("unchecked")
         Map<String,Object> returnedParent = (Map<String, Object>) cRes.getBody().get("parent");
         assertEquals(pId, ((Number)returnedParent.get("id")).longValue());
 
-        // 3) Crear recurso reservable (usando resource-groups pero con isReservable=true)
+        // 3) Create reservable resource (using resource-groups but with isReservable=true)
         Map<String,Object> reservable = new LinkedHashMap<>();
-        reservable.put("name", "Sala A");
+        reservable.put("name", "Room A");
         reservable.put("parent", Map.of("id", pId));
         reservable.put("isReservable", true);
         ResponseEntity<Map> iRes = restTemplate.postForEntity(
@@ -211,7 +211,7 @@ class OrkestriaBackendApplicationTests {
         assertEquals(HttpStatus.CREATED, iRes.getStatusCode());
         Long iId = ((Number)iRes.getBody().get("id")).longValue();
 
-        // 4) Reserva válida → 201 CREATED
+        // 4) Valid reservation → 201 CREATED
         LocalDateTime start = LocalDateTime.now().plusHours(1);
         LocalDateTime end   = start.plusHours(1);
         Map<String,Object> r1 = new LinkedHashMap<>();
@@ -226,7 +226,7 @@ class OrkestriaBackendApplicationTests {
         assertEquals(HttpStatus.CREATED, ok.getStatusCode());
         Long resId = ((Number)ok.getBody().get("id")).longValue();
 
-        // 5) Reserva solapada → 400 BAD_REQUEST + error
+        // 5) Overlapping reservation → 400 BAD_REQUEST + error
         ResponseEntity<Map> bad = restTemplate.postForEntity(
             "/api/resource-groups/" + iId + "/reservations",
             new HttpEntity<>(r1, jsonHeaders()),
@@ -235,7 +235,7 @@ class OrkestriaBackendApplicationTests {
         assertEquals(HttpStatus.BAD_REQUEST, bad.getStatusCode());
         assertTrue(bad.getBody().containsKey("error"));
 
-        // 6) Availability → solo 1
+        // 6) Availability → only 1
         ResponseEntity<List> avail = restTemplate.exchange(
             "/api/resource-groups/" + iId + "/availability?from=" + start + "&to=" + end,
             HttpMethod.GET,
@@ -244,7 +244,7 @@ class OrkestriaBackendApplicationTests {
         );
         assertEquals(1, avail.getBody().size());
 
-        // 7) Actualizar reserva
+        // 7) Update reservation
         Map<String,Object> upd = new LinkedHashMap<>(ok.getBody());
         upd.put("reservedBy", "bob");
         ResponseEntity<Map> uRes = restTemplate.exchange(
@@ -256,7 +256,7 @@ class OrkestriaBackendApplicationTests {
         assertEquals(HttpStatus.OK, uRes.getStatusCode());
         assertEquals("bob", uRes.getBody().get("reservedBy"));
 
-        // 8) Borrar reserva y listar
+        // 8) Delete reservation and list
         restTemplate.exchange(
             "/api/resource-groups/" + iId + "/reservations/" + resId,
             HttpMethod.DELETE,
@@ -271,7 +271,7 @@ class OrkestriaBackendApplicationTests {
         );
         assertTrue(afterDel.getBody().isEmpty());
 
-        // 9) Borrar recurso y comprobar que ya no aparece
+        // 9) Delete resource and verify it no longer appears
         restTemplate.exchange(
             "/api/resource-groups/" + iId,
             HttpMethod.DELETE,
@@ -288,13 +288,10 @@ class OrkestriaBackendApplicationTests {
                     .noneMatch(x -> ((Map<?,?>)x).get("id").equals(iId)));
     }
 
-    // Helper para indicar Content-Type: application/json
+    // Helper to set Content-Type: application/json
     private HttpHeaders jsonHeaders() {
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
         return h;
     }
-    
-
-
 }

@@ -6,9 +6,9 @@ skinparam packageStyle rectangle
 skinparam shadowing false
 skinparam backgroundColor white
 
-title Arquitectura del Backend - Orkestria
+title Backend Architecture - Orkestria
 
-' Definición de capas
+' Layer definition
 package "Controllers" as controllers {
   class UserController
   class ProjectController
@@ -41,7 +41,7 @@ package "Entities (Models)" as entities {
   class EmployeeSchedule
 }
 
-' Relaciones entre capas
+' Layer relationships
 UserController --> UserService
 ProjectController --> ProjectService
 TaskController --> ProjectService
@@ -62,7 +62,7 @@ ResourceGroupRepository --> ResourceGroup
 SpaceReservationRepository --> SpaceReservation
 EmployeeScheduleRepository --> EmployeeSchedule
 
-' Relaciones entre entidades
+' Entity relationships
 Task --> Project
 SpaceReservation --> ResourceGroup
 

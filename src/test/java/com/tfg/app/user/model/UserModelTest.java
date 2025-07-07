@@ -21,7 +21,7 @@ class UserModelTest {
     
     @Test
     void testEqualsAndHashCode() {
-        // Crear dos usuarios con los mismos valores en todos los campos
+        // Create two users with the same values in all fields
         User user1 = new User();
         user1.setId(1L);
         user1.setUsername("user1");
@@ -30,25 +30,25 @@ class UserModelTest {
         
         User user2 = new User();
         user2.setId(1L);
-        user2.setUsername("user1");  // Mismo username
-        user2.setEmail("user1@example.com");  // Mismo email
-        user2.setRole(User.Role.CLIENT);  // Mismo role
+        user2.setUsername("user1");  // Same username
+        user2.setEmail("user1@example.com");  // Same email
+        user2.setRole(User.Role.CLIENT);  // Same role
         
-        // Usuario con ID diferente
+        // User with different ID
         User user3 = new User();
         user3.setId(2L);
         user3.setUsername("user1");
         user3.setEmail("user1@example.com");
         user3.setRole(User.Role.CLIENT);
         
-        // Verificar equals
-        assertEquals(user1, user1);  // Mismo objeto
-        assertEquals(user1, user2);  // Objetos con mismos valores
-        assertNotEquals(user1, user3); // ID diferente
+        // Verify equals
+        assertEquals(user1, user1);  // Same object
+        assertEquals(user1, user2);  // Objects with same values
+        assertNotEquals(user1, user3); // Different ID
         assertNotEquals(user1, null);  // Null check
-        assertNotEquals(user1, "not a user");  // Tipo diferente
+        assertNotEquals(user1, "not a user");  // Different type
         
-        // Verificar hashCode
+        // Verify hashCode
         assertEquals(user1.hashCode(), user2.hashCode());
     }
     

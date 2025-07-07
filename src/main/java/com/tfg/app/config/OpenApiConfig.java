@@ -18,7 +18,7 @@ public class OpenApiConfig {
     public OpenAPI myOpenAPI() {
         Server devServer = new Server();
         devServer.setUrl("http://localhost:8080");
-        devServer.setDescription("Server URL en entorno local");
+        devServer.setDescription("Server URL in local environment");
 
         Contact contact = new Contact();
         contact.setName("Orkestria");
@@ -33,7 +33,7 @@ public class OpenApiConfig {
                 .title("Orkestria Backend API")
                 .version("1.0")
                 .contact(contact)
-                .description("API para la gestión de proyectos, tareas, usuarios y recursos.")
+                .description("API for managing projects, tasks, users and resources.")
                 .license(license);
 
         return new OpenAPI().info(info).servers(List.of(devServer));

@@ -9,15 +9,15 @@ class ProjectModelTest {
 
     @Test
     void testProjectConstructorAndGetters() {
-        // Crear un proyecto usando el constructor vacío y setters
+        // Create a project using empty constructor and setters
         Project project = new Project();
         project.setId(1L);
         project.setName("Test Project");
         project.setDescription("Description");
         project.setStartDate(LocalDate.now());
-        project.setStatus(Project.ProjectStatus.IN_PROGRESS); // Corregido: usar enum
+        project.setStatus(Project.ProjectStatus.IN_PROGRESS); // Fixed: use enum
         
-        // Verificar que los valores se han asignado correctamente
+        // Verify that values have been assigned correctly
         assertEquals(1L, project.getId());
         assertEquals("Test Project", project.getName());
         assertEquals("Description", project.getDescription());
@@ -27,7 +27,7 @@ class ProjectModelTest {
     
     @Test
     void testEqualsAndHashCode() {
-        // Crear dos proyectos idénticos
+        // Create two identical projects
         Project project1 = new Project();
         project1.setId(1L);
         project1.setName("Test Project");
@@ -38,18 +38,18 @@ class ProjectModelTest {
         project2.setName("Test Project");
         project2.setDescription("Description");
         
-        // Un proyecto diferente
+        // A different project
         Project project3 = new Project();
         project3.setId(2L);
         project3.setName("Test Project");
         
-        // Verificar equals
-        assertEquals(project1, project2);  // Deberían ser iguales con mismos valores
-        assertNotEquals(project1, project3); // IDs diferentes
+        // Verify equals
+        assertEquals(project1, project2);  // Should be equal with same values
+        assertNotEquals(project1, project3); // Different IDs
         assertNotEquals(project1, null);    // Null check
-        assertNotEquals(project1, "not a project"); // Tipo diferente
+        assertNotEquals(project1, "not a project"); // Different type
         
-        // Verificar hashCode
+        // Verify hashCode
         assertEquals(project1.hashCode(), project2.hashCode());
     }
     
@@ -61,14 +61,14 @@ class ProjectModelTest {
         
         String toString = project.toString();
         
-        // Verificar que toString contiene la información básica
+        // Verify that toString contains basic information
         assertTrue(toString.contains("1"));
         assertTrue(toString.contains("Test Project"));
     }
     
     @Test
     void testProjectStatusEnum() {
-        // Verificar los valores del enum
+        // Verify enum values
         assertEquals(3, Project.ProjectStatus.values().length);
         assertEquals(Project.ProjectStatus.PLANNED, Project.ProjectStatus.valueOf("PLANNED"));
         assertEquals(Project.ProjectStatus.IN_PROGRESS, Project.ProjectStatus.valueOf("IN_PROGRESS"));

@@ -50,7 +50,7 @@ public class ResourceService {
         return scheduleRepo.save(s);
     }
 
-    // Reservations
+    // Reservations CRUD
     public SpaceReservation createReservation(SpaceReservation r) {
         Long id = r.getResourceGroup().getId();
         LocalDateTime start = r.getStartDateTime();
@@ -109,7 +109,7 @@ public class ResourceService {
         return groupRepo.findByParent(parent);
     }
 
-    // Todas las reservas sin filtrar por grupo
+    // All reservations without filtering by group
     public List<SpaceReservation> listAllReservations() {
         return reservationRepo.findAll();
     }

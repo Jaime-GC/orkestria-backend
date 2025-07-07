@@ -139,16 +139,15 @@ public class ResourceController {
         return ResponseEntity.noContent().build();
     }
 
-    // Reservations endpoints
+    // Reservations CRUD 
     @GetMapping("/resource-groups/{id}/reservations") 
     public List<SpaceReservation> listReservations(@PathVariable("id") Long groupId) {
         return svc.listReservations(groupId);
     }
     
     @PostMapping("/resource-groups/{id}/reservations")
-    public ResponseEntity<?> createReservation(
-        @PathVariable("id") Long groupId,
-        @RequestBody SpaceReservation r) {
+    public ResponseEntity<?> createReservation(@PathVariable("id") Long groupId, @RequestBody SpaceReservation r) {
+        
         // Check if the resource group exists
         var optGroup = svc.findGroup(groupId);
         if (optGroup.isEmpty()) {
@@ -173,10 +172,7 @@ public class ResourceController {
     }
     
     @GetMapping("/resource-groups/{id}/availability")
-    public List<Map<String,Object>> checkAvailability(
-        @PathVariable("id") Long groupId,
-        @RequestParam("from") LocalDateTime from,
-        @RequestParam("to") LocalDateTime to) {
+    public List<Map<String,Object>> checkAvailability(@PathVariable("id") Long groupId, @RequestParam("from") LocalDateTime from, @RequestParam("to") LocalDateTime to) {
         var reservations = svc.findOverlappingReservations(groupId, from, to);
         return reservations.stream().map(r -> {
             Map<String, Object> map = new HashMap<>();
@@ -190,19 +186,14 @@ public class ResourceController {
     }
 
     @GetMapping("/resource-groups/{groupId}/reservations/{resId}")
-    public ResponseEntity<SpaceReservation> getReservation(
-        @PathVariable Long groupId, 
-        @PathVariable Long resId) {
+    public ResponseEntity<SpaceReservation> getReservation(@PathVariable Long groupId, @PathVariable Long resId) {
         return svc.findReservation(resId)
                  .map(ResponseEntity::ok)
                  .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/resource-groups/{groupId}/reservations/{resId}")
-    public ResponseEntity<?> updateReservation(
-        @PathVariable Long groupId,
-        @PathVariable Long resId,
-        @RequestBody SpaceReservation r) {
+    public ResponseEntity<?> updateReservation(@PathVariable Long groupId, @PathVariable Long resId, @RequestBody SpaceReservation r) {
         // Check if the resource group exists
         Optional<ResourceGroup> groupOpt = svc.findGroup(groupId);
         if (groupOpt.isEmpty()) {
@@ -226,9 +217,7 @@ public class ResourceController {
     }
 
     @DeleteMapping("/resource-groups/{groupId}/reservations/{resId}")
-    public ResponseEntity<Void> deleteReservation(
-        @PathVariable Long groupId,
-        @PathVariable Long resId) {
+    public ResponseEntity<Void> deleteReservation(@PathVariable Long groupId, @PathVariable Long resId) {
         svc.deleteReservation(resId);
         return ResponseEntity.noContent().build();
     }
@@ -241,9 +230,7 @@ public class ResourceController {
 
     // New endpoint PUT for updating a reservation (without group)
     @PutMapping("/reservations/{resId}")
-    public ResponseEntity<SpaceReservation> updateReservationWithoutGroup(
-            @PathVariable Long resId, 
-            @RequestBody SpaceReservation reservation) {
+    public ResponseEntity<SpaceReservation> updateReservationWithoutGroup(@PathVariable Long resId, @RequestBody SpaceReservation reservation) {
         SpaceReservation existing = svc.findReservation(resId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reservation not found"));
         // If the body does not supply a ResourceGroup, keep the current one (or null)
@@ -262,6 +249,7 @@ public class ResourceController {
         return ResponseEntity.noContent().build();
     }
 
+    // Exception handlers for JSON parsing data type errors, like invalid dates
     @ExceptionHandler(InvalidFormatException.class)
     public ResponseEntity<Map<String,String>> handleInvalidFormat(InvalidFormatException ex) {
         String path = ex.getPath().stream()
@@ -274,6 +262,7 @@ public class ResourceController {
         return ResponseEntity.badRequest().body(error);
     }
 
+    // Handle JSON structure errors, like missing commas or extra characters
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String,String>> handleJsonParseError(HttpMessageNotReadableException ex) {
         Map<String,String> error = new HashMap<>();

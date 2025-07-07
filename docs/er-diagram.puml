@@ -61,7 +61,7 @@ entity "EmployeeSchedules" as EmployeeSchedules {
     end_date_time     : TIMESTAMP
 }
 
-' Relaciones
+' Relationships
 Projects ||--o{ Tasks             : contains
 ResourceGroups ||--o{ SpaceReservations : has
 ResourceGroups ||--o{ ResourceGroups : parent_of

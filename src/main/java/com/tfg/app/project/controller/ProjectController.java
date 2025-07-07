@@ -25,7 +25,7 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<Project> save(@RequestBody Project project) {
-        // Establecer valores por defecto si son nulos
+        // Set default values if they are null
         if (project.getStartDate() == null) {
             project.setStartDate(java.time.LocalDate.now());
         }

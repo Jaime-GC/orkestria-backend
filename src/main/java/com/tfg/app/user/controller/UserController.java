@@ -20,7 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
-@Tag(name = "Users", description = "API para la gestión de usuarios")
+@Tag(name = "Users", description = "API for user management")
 public class UserController {
 
     private final UserService userService;
@@ -40,7 +40,7 @@ public class UserController {
 
     @Operation(
         summary = "Obtener usuario por ID",
-        description = "Devuelve un usuario específico según su ID"
+        description = "Returns a specific user by ID"
     )
     @ApiResponse(responseCode = "200", description = "Usuario encontrado")
     @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
@@ -80,7 +80,7 @@ public class UserController {
 
     @Operation(
         summary = "Actualizar usuario",
-        description = "Actualiza la información de un usuario existente"
+        description = "Updates information for an existing user"
     )
     @ApiResponse(responseCode = "200", description = "Usuario actualizado")
     @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
@@ -108,7 +108,7 @@ public class UserController {
 
     @Operation(
         summary = "Asignar rol a usuario",
-        description = "Asigna un rol específico a un usuario"
+        description = "Assigns a specific role to a user"
     )
     @ApiResponse(responseCode = "200", description = "Rol asignado")
     @PutMapping("/{id}/role")

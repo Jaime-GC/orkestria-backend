@@ -54,7 +54,7 @@ class UserControllerTest {
     
     @Test void create_handlesDuplicateUsername() {
         when(userService.save(any())).thenThrow(
-            new DataIntegrityViolationException("ERROR: uk_username_123 llave duplicada viola restricción de unicidad")
+            new DataIntegrityViolationException("ERROR: uk_username_123 duplicate key violates uniqueness constraint")
         );
         
         ResponseEntity<?> resp = controller.create(new User());
